@@ -7,17 +7,20 @@ function VisibleElementsLoader(params) {
 	this.$ = params.jQuery || params.$ || jQuery;
 	this._selector = params.selector;
 	this._waitTime = params.waitTime || 800;
+	this._margin = params.margin || 0;
 	this._lastCheckTime = 0;
 	this._timeoutId = null;
 
-	this._bindEvents();
+	this._init();
 }
 
-VisibleElementsLoader.prototype._bindEvents = function() {
-	this.$(window).off('scroll.visible-elements-loader').on('scroll.visible-elements-loader', this.loadVisibleElements.bind(this));
-	this.$(window).off('resize.visible-elements-loader').on('resize.visible-elements-loader', this.loadVisibleElements.bind(this));
+VisibleElementsLoader.prototype._init = function() {
+	var _this = this;
+	this.$(function() {
+		_this._initTimeoutCheck();
+		_this._bindEvents();
+	});
 }
-
 
 VisibleElementsLoader.prototype.loadVisibleElements = function() {
 	if (this._isInWaitTime()) {
@@ -37,6 +40,11 @@ VisibleElementsLoader.prototype.loadVisibleElements = function() {
 	this._initTimeoutCheck();
 }
 
+VisibleElementsLoader.prototype._bindEvents = function() {
+	this.$(window).off('scroll.visible-elements-loader').on('scroll.visible-elements-loader', this.loadVisibleElements.bind(this));
+	this.$(window).off('resize.visible-elements-loader').on('resize.visible-elements-loader', this.loadVisibleElements.bind(this));
+}
+
 VisibleElementsLoader.prototype._isInWaitTime = function() {
 	return (Date.now() - this._lastCheckTime < this._waitTime);
 }
@@ -50,16 +58,17 @@ VisibleElementsLoader.prototype._initTimeoutCheck = function() {
 }
 
 VisibleElementsLoader.prototype._setElementAsLoaded = function(element) {
-	element.data('loader-status','done');
+	this.$(element).data('loader-status','done');
 }
 
 VisibleElementsLoader.prototype._loadElementData = function(element) {
-	var src = element.data('ajax-source');
+	var _this = this;
+	var src = this.$(element).data('ajax-source');
 	if (!src) {
 		return;
 	}
 	this.$.getJSON(src, function(data) {
-		this._injectData(element, data);
+		_this._injectData(element, data);
 	});;
 }
 
@@ -67,7 +76,7 @@ VisibleElementsLoader.prototype._injectData = function(element, data) {
 	if (!data.html) {
 		return '';
 	}
-	element.html(data.html);
+	this.$(element).html(data.html);
 }
 
 VisibleElementsLoader.prototype._getElementToLoad = function() {
@@ -98,7 +107,7 @@ VisibleElementsLoader.prototype._isElementVisible = function(element) {
     var docViewBottom = docViewTop + this.$(window).height();
     var elemTop = this._getElementTop(element);
 
-    return elemTop <= docViewBottom;
+    return elemTop - this._margin <= docViewBottom;
 }
 
 VisibleElementsLoader.prototype._getElementTop = function(element) {
@@ -106,6 +115,6 @@ VisibleElementsLoader.prototype._getElementTop = function(element) {
 }
 
 VisibleElementsLoader.prototype._compareElements = function(element1, element2) {
-	return this.getElementTop(element1) - this.getElementTop(element2);
+	return this._getElementTop(element1) - this._getElementTop(element2);
 }
 
