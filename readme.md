@@ -1,6 +1,12 @@
 ## visible-elements-loader ##
 Library lazy-loads html data via ajax on element show - usually during scroll.
 
+#### Requirements ####
+ * jquery library (or equivalent)
+ * bind function support (or polyfill)
+
+
+
 #### Installation ####
 ```html
 <script src="path/to/visible-elements-loader.js"></script>
@@ -27,3 +33,4 @@ Each element should have "data-ajax-source" attribute with valid url from which 
 
 #### Ajax request ####
 Ajax request is made using GET call on desired url. Ajax request should return json object with "html" key. Value of the key is injected into element.
+
