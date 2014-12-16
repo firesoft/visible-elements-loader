@@ -4,117 +4,118 @@
 
 
 function VisibleElementsLoader(params) {
-	this.$ = params.jQuery || params.$ || jQuery;
+	this.$ = params.$ || jQuery;
 	this._selector = params.selector;
-	this._waitTime = params.waitTime || 800;
+	this._waitTime = params.waitTime || 600;
 	this._margin = params.margin || 0;
-	this._lastCheckTime = 0;
+	this._jsonCallback = params.jsonCallback || null;
+	this._htmlCallback = params.htmlCallback || null;
+	this._loadConcurrency = params.loadConcurrency || -1;
+
+	this._elementSelector = new VelElementSelector(params);
+
+	this._id = 0;
+	this._inited = false;
 	this._timeoutId = null;
+	this._ajaxLoaders = [];
 
 	this._init();
+}
+
+VisibleElementsLoader.prototype.scrollEvent = function() {
+	this.loadVisibleElements();
+}
+
+VisibleElementsLoader.prototype.loadVisibleElements = function() {
+	if (!this._inited || this._timeoutId) {
+		return;
+	}
+
+	if (this._isAjaxLoadersLimitHit()) {
+		this._initTimeoutCheck();
+		return;
+	}
+
+	var element = this._elementSelector.getElementToLoad();
+	if (!element) {
+		return;
+	}
+	this._loadElementData(element);
+}
+
+VisibleElementsLoader.prototype.cancelLoad = function() {
+	
+	if (this._timeoutId) {
+		clearTimeout(this._timeoutId);
+		this._timeoutId = null;
+	}
+	this._cancelAjaxLoaders();
+}
+
+VisibleElementsLoader.prototype._cancelAjaxLoaders = function() {
+	for (var i = 0; i < this._ajaxLoaders.length; i++) {
+		this._ajaxLoaders[i].cancelLoad();
+	}
+	this._ajaxLoaders = [];
+}
+
+VisibleElementsLoader.prototype._isAjaxLoadersLimitHit = function() {
+	return this._ajaxLoaders.length >= this._loadConcurrency;
 }
 
 VisibleElementsLoader.prototype._init = function() {
 	var _this = this;
 	this.$(function() {
+		_this._inited = true;
 		_this._initTimeoutCheck();
-		_this._bindEvents();
 	});
 }
-
-VisibleElementsLoader.prototype.loadVisibleElements = function() {
-	if (this._isInWaitTime()) {
-		this._initTimeoutCheck();
-		return;
-	}
-
-	this._lastCheckTime = Date.now();
-	this._timeoutId = null;
-
-	var element = this._getElementToLoad();
-	if (!element) {
-		return;
-	}
-	this._setElementAsLoaded(element);
-	this._loadElementData(element);
-	this._initTimeoutCheck();
-}
-
-VisibleElementsLoader.prototype._bindEvents = function() {
-	this.$(window).off('scroll.visible-elements-loader').on('scroll.visible-elements-loader', this.loadVisibleElements.bind(this));
-	this.$(window).off('resize.visible-elements-loader').on('resize.visible-elements-loader', this.loadVisibleElements.bind(this));
-}
-
-VisibleElementsLoader.prototype._isInWaitTime = function() {
-	return (Date.now() - this._lastCheckTime < this._waitTime);
-}
-
 
 VisibleElementsLoader.prototype._initTimeoutCheck = function() {
 	if (this._timeoutId) {
 		return;
 	}
-	this._timeoutId = setTimeout(this.loadVisibleElements.bind(this), this._waitTime);
+	this._timeoutId = setTimeout(this._timeoutCheckHit.bind(this), this._waitTime);
 }
 
-VisibleElementsLoader.prototype._setElementAsLoaded = function(element) {
-	this.$(element).data('loader-status','done');
+VisibleElementsLoader.prototype._timeoutCheckHit = function() {
+	this._timeoutId = null;
+	this.loadVisibleElements();
 }
 
 VisibleElementsLoader.prototype._loadElementData = function(element) {
-	var _this = this;
-	var src = this.$(element).data('ajax-source');
-	if (!src) {
-		return;
+	var velElementParams = this._getVelElementParams(element);
+	this._ajaxLoaders.push(new VelElement(velElementParams));
+}
+
+VisibleElementsLoader.prototype._getVelElementParams = function(element) {
+	this._generateNextId();
+	return {
+		id: this._id,
+		$: this.$,
+		element: element,
+		jsonCallback: this._jsonCallback,
+		htmlCallback: this._htmlCallback,
+		completeCallback: this._elementLoadedCallback.bind(this)
+	};
+}
+
+VisibleElementsLoader.prototype._generateNextId = function() {
+	this._id++;
+}
+
+VisibleElementsLoader.prototype._elementLoadedCallback = function(id) {
+	if (this._removeComletetedAjaxLoader(id)) {
+		this._initTimeoutCheck();
 	}
-	this.$.getJSON(src, function(data) {
-		_this._injectData(element, data);
-	});;
 }
 
-VisibleElementsLoader.prototype._injectData = function(element, data) {
-	if (!data.html) {
-		return '';
+VisibleElementsLoader.prototype._removeComletetedAjaxLoader = function(id) {
+	for (var i = 0; i < this._ajaxLoaders.length; i++) {
+		if (this._ajaxLoaders[i].getId() == id) {
+			this._ajaxLoaders[i].splice(i, 1);
+			return true;
+		}
 	}
-	this.$(element).html(data.html);
+	return false;
 }
-
-VisibleElementsLoader.prototype._getElementToLoad = function() {
-	var elements = this._getElementsToLoad();
-	if (!elements.length) {
-		return;
-	}
-	return elements[0];
-}
-
-VisibleElementsLoader.prototype._getElementsToLoad = function() {
-	return this.$(this._selector).filter(this._isElementValidToLoad.bind(this)).toArray().sort(this._compareElements.bind(this));
-}
-
-VisibleElementsLoader.prototype._isElementValidToLoad = function(index, element) {
-	if (!this._isElementVisible(element)) {
-		return false;
-	}
-	return !this._isELementLoaded(element);
-}
-
-VisibleElementsLoader.prototype._isELementLoaded = function(element) {
-	return (this.$(element).data('loader-status') == 'done');
-}
-
-VisibleElementsLoader.prototype._isElementVisible = function(element) {
-    var docViewTop = this.$(window).scrollTop();
-    var docViewBottom = docViewTop + this.$(window).height();
-    var elemTop = this._getElementTop(element);
-
-    return elemTop - this._margin <= docViewBottom;
-}
-
-VisibleElementsLoader.prototype._getElementTop = function(element) {
-	return this.$(element).offset().top;	
-}
-
-VisibleElementsLoader.prototype._compareElements = function(element1, element2) {
-	return this._getElementTop(element1) - this._getElementTop(element2);
-}
-

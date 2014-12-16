@@ -1,4 +1,8 @@
 ## visible-elements-loader ##
+
+this readme is out of date, new documentation underway
+
+
 Library lazy-loads html data via ajax on element show - usually during scroll.
 
 #### Requirements ####
