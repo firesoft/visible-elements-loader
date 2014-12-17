@@ -1,6 +1,9 @@
 'use strict';
 
-function VisibleElementsLoaderManager(params) {
+function Vel(params) {
+	if (!params) {
+		params = {};
+	}
 	this.$ = params.jQuery || params.$ || jQuery;
 	this._window = params.window || window;
 
@@ -9,37 +12,40 @@ function VisibleElementsLoaderManager(params) {
 	this._bindEvents();
 }
 
-VisibleElementsLoaderManager.prototype.bindElements = function(selector, params) {
+Vel.prototype.lazyLoad = function(selector, params) {
+	if (!params) {
+		params = {};
+	}
 	params.selector = selector;
 	params.$ = this.$;
-	var vel = new VisibleElementsLoader(params);
+	var vel = new VelManager(params);
 	this._loaders.push(vel);
 	return vel;
 }
 
-VisibleElementsLoaderManager.prototype.cancelAllLoads = function() {
+Vel.prototype.cancelAllLoads = function() {
 	this._callAtAll('cancelLoad');
 }
 
-// VisibleElementsLoaderManager.prototype.suspendAll = function() {
+// Vel.prototype.suspendAll = function() {
 // 	this._callAtAll('suspend');	
 // }
 
-// VisibleElementsLoaderManager.prototype.resumeAll = function() {
+// Vel.prototype.resumeAll = function() {
 // 	this._callAtAll('resume');
 // }
 
-VisibleElementsLoaderManager.prototype._callAtAll = function(func) {
+Vel.prototype._callAtAll = function(func) {
 	for (var i=0; i < this._loaders.length; i++) {
 		this._loaders[i][func]();
 	}	
 }
 
-VisibleElementsLoaderManager.prototype._bindEvents = function() {
+Vel.prototype._bindEvents = function() {
 	this.$(this._window).off('scroll.visible-elements-loader').on('scroll.visible-elements-loader', this._scrollEvent.bind(this));
 	this.$(this._window).off('resize.visible-elements-loader').on('resize.visible-elements-loader', this._scrollEvent.bind(this));
 }
 
-VisibleElementsLoaderManager.prototype._scrollEvent = function() {
+Vel.prototype._scrollEvent = function() {
 	this._callAtAll('scrollEvent');
 }

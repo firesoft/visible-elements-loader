@@ -3,14 +3,14 @@
 //bind polyfill needed
 
 
-function VisibleElementsLoader(params) {
+function VelManager(params) {
 	this.$ = params.$ || jQuery;
 	this._selector = params.selector;
-	this._waitTime = params.waitTime || 600;
+	this._waitTime = params.hasOwnProperty('waitTime') ? params.waitTime : 600;
+	this._loadConcurrency = params.loadConcurrency || -1;
 	this._margin = params.margin || 0;
 	this._jsonCallback = params.jsonCallback || null;
 	this._htmlCallback = params.htmlCallback || null;
-	this._loadConcurrency = params.loadConcurrency || -1;
 
 	this._elementSelector = new VelElementSelector(params);
 
@@ -22,11 +22,11 @@ function VisibleElementsLoader(params) {
 	this._init();
 }
 
-VisibleElementsLoader.prototype.scrollEvent = function() {
+VelManager.prototype.scrollEvent = function() {
 	this.loadVisibleElements();
 }
 
-VisibleElementsLoader.prototype.loadVisibleElements = function() {
+VelManager.prototype.loadVisibleElements = function() {
 	if (!this._inited || this._timeoutId) {
 		return;
 	}
@@ -41,9 +41,10 @@ VisibleElementsLoader.prototype.loadVisibleElements = function() {
 		return;
 	}
 	this._loadElementData(element);
+	this._initTimeoutCheck();
 }
 
-VisibleElementsLoader.prototype.cancelLoad = function() {
+VelManager.prototype.cancelLoad = function() {
 	
 	if (this._timeoutId) {
 		clearTimeout(this._timeoutId);
@@ -52,18 +53,21 @@ VisibleElementsLoader.prototype.cancelLoad = function() {
 	this._cancelAjaxLoaders();
 }
 
-VisibleElementsLoader.prototype._cancelAjaxLoaders = function() {
+VelManager.prototype._cancelAjaxLoaders = function() {
 	for (var i = 0; i < this._ajaxLoaders.length; i++) {
 		this._ajaxLoaders[i].cancelLoad();
 	}
 	this._ajaxLoaders = [];
 }
 
-VisibleElementsLoader.prototype._isAjaxLoadersLimitHit = function() {
+VelManager.prototype._isAjaxLoadersLimitHit = function() {
+	if (this._loadConcurrency == -1) {
+		return false;
+	}
 	return this._ajaxLoaders.length >= this._loadConcurrency;
 }
 
-VisibleElementsLoader.prototype._init = function() {
+VelManager.prototype._init = function() {
 	var _this = this;
 	this.$(function() {
 		_this._inited = true;
@@ -71,24 +75,24 @@ VisibleElementsLoader.prototype._init = function() {
 	});
 }
 
-VisibleElementsLoader.prototype._initTimeoutCheck = function() {
+VelManager.prototype._initTimeoutCheck = function() {
 	if (this._timeoutId) {
 		return;
 	}
 	this._timeoutId = setTimeout(this._timeoutCheckHit.bind(this), this._waitTime);
 }
 
-VisibleElementsLoader.prototype._timeoutCheckHit = function() {
+VelManager.prototype._timeoutCheckHit = function() {
 	this._timeoutId = null;
 	this.loadVisibleElements();
 }
 
-VisibleElementsLoader.prototype._loadElementData = function(element) {
+VelManager.prototype._loadElementData = function(element) {
 	var velElementParams = this._getVelElementParams(element);
 	this._ajaxLoaders.push(new VelElement(velElementParams));
 }
 
-VisibleElementsLoader.prototype._getVelElementParams = function(element) {
+VelManager.prototype._getVelElementParams = function(element) {
 	this._generateNextId();
 	return {
 		id: this._id,
@@ -100,20 +104,20 @@ VisibleElementsLoader.prototype._getVelElementParams = function(element) {
 	};
 }
 
-VisibleElementsLoader.prototype._generateNextId = function() {
+VelManager.prototype._generateNextId = function() {
 	this._id++;
 }
 
-VisibleElementsLoader.prototype._elementLoadedCallback = function(id) {
+VelManager.prototype._elementLoadedCallback = function(id) {
 	if (this._removeComletetedAjaxLoader(id)) {
-		this._initTimeoutCheck();
+		//this._initTimeoutCheck();
 	}
 }
 
-VisibleElementsLoader.prototype._removeComletetedAjaxLoader = function(id) {
+VelManager.prototype._removeComletetedAjaxLoader = function(id) {
 	for (var i = 0; i < this._ajaxLoaders.length; i++) {
 		if (this._ajaxLoaders[i].getId() == id) {
-			this._ajaxLoaders[i].splice(i, 1);
+			this._ajaxLoaders.splice(i, 1);
 			return true;
 		}
 	}

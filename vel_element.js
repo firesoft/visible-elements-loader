@@ -7,13 +7,13 @@ function VelElement(params) {
 	this._elementObj = this.$(params.element);
 	this._jsonCallback = params.jsonCallback || null;
 	this._htmlCallback = params.htmlCallback || null;
-	this._completeCallback = params.completeCallback || null
+	this._completeCallback = params.completeCallback || null;
 	this._ajaxPromise = null;
 
 	this._load();
 }
 
-VelElement.prototype.getId() {
+VelElement.prototype.getId = function() {
 	return this._id;
 }
 
@@ -70,7 +70,7 @@ VelElement.prototype._makeAjaxJsonRequest = function(src) {
 VelElement.prototype._ajaxComplete = function() {
 	this._ajaxPromise = null;
 	if (this._completeCallback) {
-		this._completeCallback();
+		this._completeCallback(this._id);
 	}
 }
 
