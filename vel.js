@@ -23,6 +23,10 @@ Vel.prototype.lazyLoad = function(selector, params) {
 	return vel;
 }
 
+Vel.prototype.loadVisibleElements = function() {
+	this._callAtAll('loadVisibleElements');
+}
+
 Vel.prototype.cancelAllLoads = function() {
 	this._callAtAll('cancelLoad');
 }
