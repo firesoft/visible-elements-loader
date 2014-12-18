@@ -37,15 +37,15 @@ vel.lazyLoad(".js-lazyload", {waitTime: 600, loadConcurrency: 1, htmlCallback: f
 #### Vel constructor params ####
 Vel constructor takes one param. Object with following keys:
  * jQuery - reference to jQuery library (default: jQuery)
- * window - reference to window object (default: jQuery)
+ * window - reference to window object (default: window)
 
 
 #### Public Vel methods ####
- * lazyLoad - starts to watch matched elements and loads content into on show
- * cancelAllLoads - cancells all loads
+ * lazyLoad - starts to watch elements that match selector and loads content into on show
+ * cancelAllLoads - cancels all loads
 
 
-##### lazyLoad method#####
+##### lazyLoad method #####
 lazyLoad method takes two params:
  * selector - required, jquery compatible selector of elements
  * params object
@@ -60,7 +60,7 @@ lazyLoad method takes two params:
 lazyLoad method returns VelManager object.
 
 #### VelManager ####
-VelManager object watches elements that match selector, and load their contents on show.
+VelManager object watches elements that match selector, and loads their contents on show.
 
 #### Elements ####
 Each element should have "data-ajax-html-source" or "data-ajax-json-source" attribute with valid url from which content will be loaded. htmlCallback or jsonCallback will be called upon load.
