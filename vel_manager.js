@@ -7,6 +7,7 @@ function VelManager(params) {
 	this.$ = params.$ || jQuery;
 	this._selector = params.selector;
 	this._waitTime = params.hasOwnProperty('waitTime') ? params.waitTime : 600;
+	this._suspended = false;
 	this._loadConcurrency = params.loadConcurrency || -1;
 	this._margin = params.margin || 0;
 	this._jsonCallback = params.jsonCallback || null;
@@ -27,7 +28,7 @@ VelManager.prototype.scrollEvent = function() {
 }
 
 VelManager.prototype.loadVisibleElements = function() {
-	if (!this._inited || this._timeoutId) {
+	if (!this._inited || this._timeoutId || this._suspended) {
 		return;
 	}
 
@@ -51,6 +52,15 @@ VelManager.prototype.cancelLoad = function() {
 		this._timeoutId = null;
 	}
 	this._cancelAjaxLoaders();
+}
+
+VelManager.prototype.suspend = function() {
+	this._suspended = true;
+}
+
+VelManager.prototype.resume = function() {
+	this._suspended = false;
+	this._initTimeoutCheck();
 }
 
 VelManager.prototype._cancelAjaxLoaders = function() {

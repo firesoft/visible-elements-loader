@@ -31,13 +31,13 @@ Vel.prototype.cancelAllLoads = function() {
 	this._callAtAll('cancelLoad');
 }
 
-// Vel.prototype.suspendAll = function() {
-// 	this._callAtAll('suspend');	
-// }
+Vel.prototype.suspendAll = function() {
+	this._callAtAll('suspend');	
+}
 
-// Vel.prototype.resumeAll = function() {
-// 	this._callAtAll('resume');
-// }
+Vel.prototype.resumeAll = function() {
+	this._callAtAll('resume');
+}
 
 Vel.prototype._callAtAll = function(func) {
 	for (var i=0; i < this._loaders.length; i++) {
