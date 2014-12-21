@@ -10,15 +10,14 @@ function VelManager(params) {
 	this._suspended = false;
 	this._loadConcurrency = params.loadConcurrency || -1;
 	this._margin = params.margin || 0;
-	this._jsonCallback = params.jsonCallback || null;
-	this._htmlCallback = params.htmlCallback || null;
+	this._doneCallback = params.doneLoadCallback;
 
+	this._elementFactory = params.elementFactory;
 	this._elementSelector = new VelElementSelector(params);
 
-	this._id = 0;
 	this._inited = false;
 	this._timeoutId = null;
-	this._ajaxLoaders = [];
+	this._elementLoaders = [];
 
 	this._init();
 }
@@ -32,16 +31,16 @@ VelManager.prototype.loadVisibleElements = function() {
 		return;
 	}
 
-	if (this._isAjaxLoadersLimitHit()) {
+	if (this._isLoadersLimitHit()) {
 		this._initTimeoutCheck();
 		return;
 	}
 
-	var element = this._elementSelector.getElementToLoad();
-	if (!element) {
+	var domNode = this._elementSelector.getElementToLoad();
+	if (!domNode) {
 		return;
 	}
-	this._loadElementData(element);
+	this._loadElementData(domNode);
 	this._initTimeoutCheck();
 }
 
@@ -51,7 +50,7 @@ VelManager.prototype.cancelLoad = function() {
 		clearTimeout(this._timeoutId);
 		this._timeoutId = null;
 	}
-	this._cancelAjaxLoaders();
+	this._cancelElementLoaders();
 }
 
 VelManager.prototype.suspend = function() {
@@ -63,18 +62,18 @@ VelManager.prototype.resume = function() {
 	this._initTimeoutCheck();
 }
 
-VelManager.prototype._cancelAjaxLoaders = function() {
-	for (var i = 0; i < this._ajaxLoaders.length; i++) {
-		this._ajaxLoaders[i].cancelLoad();
+VelManager.prototype._cancelElementLoaders = function() {
+	for (var i = 0; i < this._elementLoaders.length; i++) {
+		this._elementLoaders[i].cancelLoad();
 	}
-	this._ajaxLoaders = [];
+	this._elementLoaders = [];
 }
 
-VelManager.prototype._isAjaxLoadersLimitHit = function() {
+VelManager.prototype._isLoadersLimitHit = function() {
 	if (this._loadConcurrency == -1) {
 		return false;
 	}
-	return this._ajaxLoaders.length >= this._loadConcurrency;
+	return this._elementLoaders.length >= this._loadConcurrency;
 }
 
 VelManager.prototype._init = function() {
@@ -97,39 +96,38 @@ VelManager.prototype._timeoutCheckHit = function() {
 	this.loadVisibleElements();
 }
 
-VelManager.prototype._loadElementData = function(element) {
-	var velElementParams = this._getVelElementParams(element);
-	this._ajaxLoaders.push(new VelElement(velElementParams));
+VelManager.prototype._loadElementData = function(domNode) {
+	var _this = this;
+	this._setElementAsLoaded(domNode);
+	var elementLoader = this._elementFactory.getVelElement(domNode);
+	if (!elementLoader) {
+		return;
+	}
+
+	this._elementLoaders.push(elementLoader);
+	elementLoader.load(function(err, data) {
+		_this._elementDoneCallback(err, elementLoader, data);
+	});
 }
 
-VelManager.prototype._getVelElementParams = function(element) {
-	this._generateNextId();
-	return {
-		id: this._id,
-		$: this.$,
-		element: element,
-		jsonCallback: this._jsonCallback,
-		htmlCallback: this._htmlCallback,
-		completeCallback: this._elementLoadedCallback.bind(this)
-	};
-}
-
-VelManager.prototype._generateNextId = function() {
-	this._id++;
-}
-
-VelManager.prototype._elementLoadedCallback = function(id) {
-	if (this._removeComletetedAjaxLoader(id)) {
-		//this._initTimeoutCheck();
+VelManager.prototype._elementDoneCallback = function(err, elementLoader, data) {
+	var id = elementLoader.getId();
+	this._removeComletetedElementLoader(id);
+	if (!err && this._doneCallback) {
+		this._doneCallback(elementLoader.getDomNode(), data);
 	}
 }
 
-VelManager.prototype._removeComletetedAjaxLoader = function(id) {
-	for (var i = 0; i < this._ajaxLoaders.length; i++) {
-		if (this._ajaxLoaders[i].getId() == id) {
-			this._ajaxLoaders.splice(i, 1);
+VelManager.prototype._removeComletetedElementLoader = function(id) {
+	for (var i = 0; i < this._elementLoaders.length; i++) {
+		if (this._elementLoaders[i].getId() == id) {
+			this._elementLoaders.splice(i, 1);
 			return true;
 		}
 	}
 	return false;
+}
+
+VelManager.prototype._setElementAsLoaded = function(domNode) {
+	this.$(domNode).data('loader-status','done');
 }
