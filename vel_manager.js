@@ -6,10 +6,10 @@
 function VelManager(params) {
 	this.$ = params.$ || jQuery;
 	this._selector = params.selector;
-	this._waitTime = params.hasOwnProperty('waitTime') ? params.waitTime : 600;
+	this._waitTime = params.hasOwnProperty('waitTime') ? parseInt(params.waitTime) : 600;
 	this._suspended = false;
-	this._loadConcurrency = params.loadConcurrency || -1;
-	this._margin = params.margin || 0;
+	this._loadConcurrency = parseInt(params.loadConcurrency) || -1;
+	this._margin = params.hasOwnProperty('margin') ? parseInt(params.margin) : 10;
 	this._doneCallback = params.doneLoadCallback;
 
 	this._elementFactory = params.elementFactory;
