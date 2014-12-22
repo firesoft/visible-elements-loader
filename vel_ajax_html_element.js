@@ -6,7 +6,8 @@ function VelAjaxHtmlElement(params) {
 	this._ajaxPromise = null;
 }
 
-VelAjaxHtmlElement.prototype = new VelElementBase();
+VelAjaxHtmlElement.prototype = Object.create(VelElementBase.prototype);
+VelAjaxHtmlElement.constructor = VelElementBase;
 
 VelAjaxHtmlElement.prototype.load = function(callback) {
 	var _this = this;

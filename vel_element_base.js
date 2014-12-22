@@ -1,9 +1,6 @@
 'use strict';
 
 function VelElementBase(params) {
-	if (!params) {
-		return;
-	}
 	this._id = params.id;
 	this._$ = params.$;
 	this._type = params.type;
