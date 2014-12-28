@@ -1,6 +1,6 @@
 ## visible-elements-loader aka Vel ##
 
-This readme is still under construction.
+This readme is depracated! New one under way - stay tuned.
 
 
 Library lazy-loads data via ajax on element show - usually during scroll.
