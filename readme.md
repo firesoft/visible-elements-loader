@@ -7,7 +7,8 @@ Library lazy-loads data via ajax on element show - usually during scroll.
 
 #### Requirements ####
  * jquery library (or equivalent)
- * bind function support (or polyfill: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Polyfill)
+ * function.bind method support (or polyfill: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Polyfill)
+ * object.create method support (or polyfill: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create#Polyfill) 
 
 
 
