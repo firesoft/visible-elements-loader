@@ -51,6 +51,7 @@ Vel.prototype._initElementFactory = function() {
 	this._elementFactory = new VelElementFactory({$: this._$});
 	this._elementFactory.registerElementClass('ajax-html', VelAjaxHtmlElement);
 	this._elementFactory.registerElementClass('image', VelImageElement);
+	this._elementFactory.registerElementClass('ajax-json', VelAjaxJsonElement);
 }
 
 Vel.prototype._callAtAll = function(func) {
