@@ -7,7 +7,7 @@ function VelAjaxJsonElement(params) {
 }
 
 VelAjaxJsonElement.prototype = Object.create(VelElementBase.prototype);
-VelAjaxJsonElement.constructor = VelElementBase;
+VelAjaxJsonElement.prototype.constructor = VelAjaxJsonElement;
 
 VelAjaxJsonElement.prototype.load = function(callback) {
 	var _this = this;

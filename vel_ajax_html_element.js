@@ -7,7 +7,7 @@ function VelAjaxHtmlElement(params) {
 }
 
 VelAjaxHtmlElement.prototype = Object.create(VelElementBase.prototype);
-VelAjaxHtmlElement.constructor = VelElementBase;
+VelAjaxHtmlElement.prototype.constructor = VelAjaxHtmlElement;
 
 VelAjaxHtmlElement.prototype.load = function(callback) {
 	var _this = this;

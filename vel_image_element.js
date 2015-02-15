@@ -5,7 +5,7 @@ function VelImageElement(params) {
 }
 
 VelImageElement.prototype = Object.create(VelElementBase.prototype);
-VelImageElement.constructor = VelElementBase;
+VelImageElement.prototype.constructor = VelImageElement;
 
 VelImageElement.prototype.load = function(callback) {
 	this._domNodeObject.attr('src', this._src);
